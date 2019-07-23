@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html>
+<body id='body'>
+</body>
+
+
+
+<script>
+    
+    
+//kaios output
+console.log= (msg)=>{
+    alert(msg)
+}
+
+window.onerror= (msg)=>{
+    alert(msg)
+}
+    
+//networking
+http_req= (proto,url,traceback,response_type='')=>{
+	var xmlHttp = new XMLHttpRequest()
+	xmlHttp.onreadystatechange= ()=>{
+		if(xmlHttp.readyState==4 && xmlHttp.status==200){
+			traceback(xmlHttp)
+		}
+	}
+	xmlHttp.open(proto,url,true)
+    xmlHttp.responseType = response_type
+	xmlHttp.send()
+}
+req= (r,traceback,response_type='')=>{
+    http_req(encodeURIComponent('CUSTOM:'+r),'',traceback,response_type=response_type)
+}
+
+//output
+deb= (data)=>{
+    console.log(data)
+}
+
+//create elements
+create= (name)=>{
+    return document.createElement(name)
+}
+create_br= ()=>{
+    return create('br')
+}
+create_btn= ()=>{
+    var b = create('input')
+    b.type = 'submit'
+    return b
+}
+create_div= ()=>{
+    return create('div')
+}
+create_inp= ()=>{
+    var i = create('input')
+    i.type = 'text'
+    return i
+}
+
+
+//append elements
+append= (el)=>{
+    return body.appendChild(el)
+}
+
+
+
+
+//front-end
+
+
+
+
+
+//input bar
+inp = create_inp()
+inp.size = 25
+append(inp)
+append(create_br())
+
+//find button
+btn = create_btn()
+btn.value = 'search'
+btn.style = 'width: 215px'
+
+btn.onclick= ()=>{
+    btn.disabled = 1
+    var on_recv_search_res= (r)=>{
+        r = r.responseText
+        clear()
+        r = r.split('\n')
+        while(r.length > 0){
+            var video_url = r.splice(0,1)[0]
+            var title = r.splice(0,1)[0]
+            //var img = r.splice(0,1)[0]
+            
+            var b = create_btn()
+            b.value = title
+            b.video_url = video_url
+            
+            b.onclick= (click)=>{
+                var b = click.explicitOriginalTarget
+                
+                b.disabled = 1
+                
+                window.location.href += b.video_url
+                
+                b.disabled = 0
+                
+                /*
+                req('download;'+b.video_url,(r)=>{
+                    r = r.response
+                    re = r
+                    var failed = r[0]
+                    r = r.slice(1)
+                    if(failed){
+                        deb('cant download; server err')
+                    }else{
+                        downloadFile(r,b.value+'.mp3')
+                    }
+                    
+                    b.disabled = 0
+                },'arraybuffer')
+                */
+                
+                
+            }
+            out.appendChild(b)
+            out.appendChild(create_br())
+            
+        }
+        btn.disabled = 0
+    }
+    req('search;'+inp.value,on_recv_search_res)
+    inp.value = ''
+}
+append(btn)
+
+//output
+out = create_div()
+append(out)
+clear= ()=>{
+    out.innerHTML = ''
+}
+
+
+
+
+
+function downloadFile(data, fileName, type="text/plain") {
+  // Create an invisible A element
+  const a = document.createElement("a");
+  a.style.display = "none";
+  document.body.appendChild(a);
+
+  // Set the HREF to a Blob representation of the data to be downloaded
+  a.href = window.URL.createObjectURL(
+    new Blob([data], { type })
+  );
+
+  // Use download attribute to set set desired file name
+  a.setAttribute("download", fileName);
+
+  // Trigger the download by simulating click
+  a.click();
+
+  // Cleanup
+  window.URL.revokeObjectURL(a.href);
+  document.body.removeChild(a);
+}
+
+
+
+
+
+</script>
+</html>
